@@ -23,4 +23,8 @@ Gem::Specification.new do |s|
   s.metadata = {
     'bug_tracker_uri' => 'https://github.com/darkkowalski/ruar/issues'
   }
+
+  s.add_development_dependency 'rake', '~> 13.0.3'
+  s.add_development_dependency 'minitest', '~> 5.14.3'
+  s.add_development_dependency 'ci_reporter_minitest', '~> 1.0.0'
 end
