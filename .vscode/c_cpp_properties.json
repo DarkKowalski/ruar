@@ -1,0 +1,17 @@
+{
+    "configurations": [
+        {
+            "name": "x86_64-linux-rvm-c-api",
+            "includePath": [
+                "${MY_RUBY_HOME}/include/${RUBY_VERSION}/",
+                "${MY_RUBY_HOME}/include/${RUBY_VERSION}/ruby",
+                "${MY_RUBY_HOME}/include/${RUBY_VERSION}/x86_64-linux"
+            ],
+            "intelliSenseMode": "gcc-x64",
+            "compilerPath": "/usr/bin/gcc",
+            "cStandard": "c17",
+            "cppStandard": "c++14"
+        }
+    ],
+    "version": 4
+}
