@@ -11,16 +11,16 @@ Rake::ExtensionTask.new('ruar', gemspec) do |ext|
 end
 
 require 'rake/testtask'
-require 'ci/reporter/rake/minitest'
 
-Rake::TestTask.new(:minitest) do |t|
+Rake::TestTask.new(:test) do |t|
   t.libs << 'lib'
   t.libs << 'test'
   t.test_files = FileList['test/**/*_test.rb']
+  t.verbose = true
 end
 
 Gem::PackageTask.new(gemspec) do |pkg|
+  # If no block is supplied, then define needs to be called to define the task.
 end
 
-task test: 'ci:setup:minitest'
 task default: %w[compile test]
