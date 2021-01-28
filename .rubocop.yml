@@ -1,0 +1,6 @@
+AllCops:
+  NewCops: enable
+  Exclude:
+    - ext/ruar/extconf.rb
+    - tmp/**/*
+    - pkg/**/*

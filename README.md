@@ -1,5 +1,9 @@
 # ruar
+
 Tar-like Archive for RIEN
+
+![CI Tests](https://github.com/DarkKowalski/ruar/workflows/CI%20Tests/badge.svg)
+![Build](https://github.com/DarkKowalski/ruar/workflows/Build/badge.svg)
 
 ## Format
 
