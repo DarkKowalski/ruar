@@ -2,8 +2,8 @@
 
 Tar-like Archive for RIEN
 
-![CI Tests](https://github.com/DarkKowalski/ruar/workflows/CI%20Tests/badge.svg)
-![Build](https://github.com/DarkKowalski/ruar/workflows/Build/badge.svg)
+[![CI Tests](https://github.com/DarkKowalski/ruar/workflows/CI%20Tests/badge.svg)](https://github.com/DarkKowalski/ruar/actions?query=workflow%3A%22CI+Tests%22)
+[![Build](https://github.com/DarkKowalski/ruar/workflows/Build/badge.svg)](https://github.com/DarkKowalski/ruar/actions?query=workflow%3ABuild)
 
 ## Format
 
