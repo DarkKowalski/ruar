@@ -2,6 +2,6 @@
 
 require 'mkmf'
 $CFLAGS << ' -O3 '
-$CFLAGS << ' -std=c17'
+$CFLAGS << ' -std=c99'
 
 create_makefile('ruar/ruar')

@@ -2,6 +2,7 @@
 
 #include <ruby.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <zlib.h>
 
 #define HEADER_SIZE 64 /* Bytes */
@@ -69,6 +70,7 @@ static VALUE ruar_access_rb_file(VALUE self, VALUE archive, VALUE path);
 
 /* Helpers*/
 static unsigned long ruar_crc32(const unsigned char *bytes, const int len);
+
 void Init_ruar(void)
 {
     rb_mRuar = rb_define_module("Ruar");
