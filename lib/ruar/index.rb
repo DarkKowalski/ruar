@@ -4,6 +4,7 @@ module Ruar
   module Index
     # Generate json format index
     def self.generate(dir)
+      # JSON.pretty_generate(scan(dir))
       scan(dir).to_json
     end
 
@@ -23,7 +24,7 @@ module Ruar
         end
 
         dirs = entities.select { |d| File.directory?(d) }
-        dirs.each { |d| result['files'][d] = scan(d)['files'] }
+        dirs.each { |d| result['files'][d] = scan(d) }
 
         result
       end
