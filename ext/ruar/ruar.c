@@ -1,11 +1,15 @@
 #include "ruar.h"
 
+#include <ctype.h>
 #include <ruby.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <zlib.h>
 
 #define HEADER_SIZE 64 /* Bytes */
+
 struct ruar_header
 {
     uint32_t major_version;
@@ -57,7 +61,7 @@ static VALUE rb_mRuar_Serialize;
 static VALUE rb_mRuar_Serialize_Native;
 
 /* Functions exposed as module functions on Ruar::Serialize::Native */
-static VALUE ruar_serialize_rb_plain(VALUE self, VALUE srcdir, VALUE dstdir);
+static VALUE ruar_serialize_rb_plain(VALUE self, VALUE srcdir, VALUE dstfile);
 
 /* Ruar::Access::Native */
 static VALUE rb_mRuar_Access;
@@ -69,7 +73,8 @@ static VALUE ruar_access_rb_index(VALUE self, VALUE archive);
 static VALUE ruar_access_rb_file(VALUE self, VALUE archive, VALUE path);
 
 /* Helpers*/
-static unsigned long ruar_crc32(const unsigned char *bytes, const int len);
+static uint32_t ruar_crc32_generate(const unsigned char *bytes, const int len);
+static char *ruar_index_scan(const VALUE srcdir);
 
 void Init_ruar(void)
 {
@@ -81,16 +86,59 @@ void Init_ruar(void)
     rb_mRuar_Access = rb_define_module_under(rb_mRuar, "Access");
     rb_mRuar_Access_Native = rb_define_module_under(rb_mRuar_Access, "Native");
 
-    rb_define_module_function(rb_mRuar_Serialize_Native, "plain", ruar_serialize_rb_plain, 0);
+    rb_define_module_function(rb_mRuar_Serialize_Native, "plain", ruar_serialize_rb_plain, 2);
 
-    rb_define_module_function(rb_mRuar_Access_Native, "header", ruar_access_rb_header, 0);
-    rb_define_module_function(rb_mRuar_Access_Native, "index", ruar_access_rb_index, 0);
-    rb_define_module_function(rb_mRuar_Access_Native, "file", ruar_access_rb_file, 0);
+    rb_define_module_function(rb_mRuar_Access_Native, "header", ruar_access_rb_header, 1);
+    rb_define_module_function(rb_mRuar_Access_Native, "index", ruar_access_rb_index, 1);
+    rb_define_module_function(rb_mRuar_Access_Native, "file", ruar_access_rb_file, 2);
 }
 
-static VALUE ruar_serialize_rb_plain(VALUE self, VALUE srcdir, VALUE dstdir)
+static uint32_t ruar_crc32_generate(const unsigned char *bytes, const int len)
+{
+    return crc32(0, bytes, len) & 0xffffffff;
+}
+
+/* FIXME: use rb_protect instead */
+static char *ruar_index_scan(const VALUE srcdir)
+{
+    VALUE rb_mRuar_Index = rb_const_get(rb_mRuar, rb_intern("Index"));
+    VALUE index = rb_funcall(rb_mRuar_Index, rb_intern("generate"), 1, srcdir);
+
+    return rb_string_value_cstr(&index);
+}
+
+static VALUE ruar_serialize_rb_plain(VALUE self, VALUE srcdir, VALUE dstfile)
 {
     /* FIXME: return nil currenlty */
+    char *index = ruar_index_scan(srcdir);
+    int index_size = strlen(index) + 1;
+
+    struct ruar_header header = {
+        .major_version = current_major_version,
+        .minor_version = current_minor_version,
+        .patch_version = current_patch_version,
+        .platform = current_platform,
+        .encryption_flags = 0,
+        .compression_flags = 0,
+        .index_start = HEADER_SIZE,
+        .index_size = index_size,
+        .index_checksum = ruar_crc32_generate((unsigned char *)index, index_size),
+        .header_checksum = 0};
+    header.header_checksum = ruar_crc32_generate((unsigned char *)&header, HEADER_SIZE);
+
+    char *dstfile_cstring = rb_string_value_cstr(&dstfile);
+    FILE *outfile = fopen(dstfile_cstring, "w");
+    if (outfile == NULL)
+    {
+        fprintf(stderr, "\nFailed to open file!%s\n", dstfile_cstring);
+        free(dstfile_cstring);
+        return Qnil;
+    }
+
+    fwrite(&header, HEADER_SIZE, 1, outfile);
+    fwrite(index, index_size, 1, outfile);
+    fclose(outfile);
+
     return Qnil;
 }
 

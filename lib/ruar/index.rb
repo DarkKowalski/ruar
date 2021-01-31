@@ -5,11 +5,12 @@ module Ruar
     # Generate json format index
     def self.generate(dir)
       # JSON.pretty_generate(scan(dir))
-      scan(dir).to_json
+      scan(dir, 0).to_json
     end
 
+    # FIXME：don't recurse
     # Recursively scan the directory
-    def self.scan(dir)
+    def self.scan(dir, offset)
       Dir.chdir(dir) do
         result = { 'files' => {} }
         entities = Dir['**']
@@ -17,14 +18,17 @@ module Ruar
 
         files = entities.select { |f| File.file?(f) }
         files.each do |f|
+          size = File.size(f)
           result['files'][f] = {
-            'size' => File.size(f),
+            'size' => size,
+            'offset' => offset,
             'executable' => File.executable?(f)
           }
+          offset += size
         end
 
         dirs = entities.select { |d| File.directory?(d) }
-        dirs.each { |d| result['files'][d] = scan(d) }
+        dirs.each { |d| result['files'][d] = scan(d, offset) }
 
         result
       end
