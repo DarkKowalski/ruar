@@ -131,7 +131,6 @@ static VALUE ruar_serialize_rb_plain(VALUE self, VALUE srcdir, VALUE dstfile)
     if (outfile == NULL)
     {
         fprintf(stderr, "\nFailed to open file!%s\n", dstfile_cstring);
-        free(dstfile_cstring);
         return Qnil;
     }
 
