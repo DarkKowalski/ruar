@@ -11,7 +11,7 @@
 #define HEADER_SIZE 64 /* Bytes */
 
 /* Notice: O(n) */
-#define INDEX_SIZE(i) strlen((i)) + 1 /* Bytes */
+#define INDEX_SIZE(i) ((uint32_t)(strlen((i)) + 1)) /* Bytes */
 
 #define READ_SRC_BUFFER_SIZE 0x8000 /* Bytes */
 
@@ -141,7 +141,7 @@ static VALUE ruar_serialize_rb_plain_header(VALUE self, VALUE dstfile, VALUE ind
 {
     /* Call into ruby to generate the index */
     char *index_cstring = rb_string_value_cstr(&index);
-    int index_size = INDEX_SIZE(index_cstring);
+    uint32_t index_size = INDEX_SIZE(index_cstring);
 
     /* Fill out a header */
     struct ruar_header header = {
