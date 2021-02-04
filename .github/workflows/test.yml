@@ -27,13 +27,7 @@ jobs:
           bundler-cache: false
       - name: Install Dependencies
         run: |
-          case "$OSTYPE" in
-            darwin*)  echo "OSX" ;; 
-            linux*)   echo "LINUX" ;;
-            bsd*)     echo "BSD" ;;
-            msys*)    echo "WINDOWS"; pacman -S --needed mingw-w64-x86_64-zlib ;;
-            *)        echo "unknown: $OSTYPE" ;;
-          esac
+          echo '`pacman -S --needed mingw-w64-x86_64-zlib` if (/mingw/ =~ RUBY_PLATFORM) != nil' | ruby
           gem install bundler
           bundle install --jobs 4 --retry 3
       - name: Compile
