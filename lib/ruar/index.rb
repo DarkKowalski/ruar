@@ -1,36 +1,65 @@
 # frozen_string_literal: true
 
 module Ruar
-  module Index
+  class Index
+    attr_reader :dir, :index, :source_info
+
+    def initialize(dir = '.')
+      @dir = dir
+      @index = nil
+      @source_info = nil
+      generate(dir)
+    end
+
+    def json_index
+      @index.to_json
+    end
+
+    private
+
     # Generate json format index
-    def self.generate(dir)
+    def generate(dir)
       # JSON.pretty_generate(scan(dir))
-      scan(dir, 0).to_json
+      @index, @source_info = scan(dir, 0)
     end
 
     # FIXME：don't recurse
+    # TODO: support compression and encryption
     # Recursively scan the directory
-    def self.scan(dir, offset)
+    def scan(dir, offset)
       Dir.chdir(dir) do
-        result = { 'files' => {} }
+        index = { 'files' => {} }
+        source_info = [] # { realpath, size, offset }
         entities = Dir['**']
-        return result if entities.empty?
+        return index, source_info if entities.empty?
 
         files = entities.select { |f| File.file?(f) }
         files.each do |f|
           size = File.size(f)
-          result['files'][f] = {
+
+          index['files'][f] = {
             'size' => size,
             'offset' => offset,
             'executable' => File.executable?(f)
           }
+
+          source_info.push({
+                             'realpath' => File.realpath(f),
+                             'size' => size,
+                             'offset' => offset
+                           })
+
           offset += size
         end
 
         dirs = entities.select { |d| File.directory?(d) }
-        dirs.each { |d| result['files'][d] = scan(d, offset) }
+        dirs.each do |d|
+          sub_index, sub_source_info = scan(d, offset)
+          index['files'][d] = sub_index
+          source_info.concat(sub_source_info)
+        end
 
-        result
+        return index, source_info
       end
     end
   end
