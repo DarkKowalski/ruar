@@ -27,7 +27,7 @@ jobs:
           bundler-cache: false
       - name: Install Dependencies
         run: |
-          echo 'puts `pacman -S --needed mingw-w64-x86_64-zlib` if (/mingw/ =~ RUBY_PLATFORM) != nil' | ruby
+          echo 'puts `pacman -S --needed mingw-w64-x86_64-zlib mingw-w64-i686-zlib` if (/mingw/ =~ RUBY_PLATFORM) != nil' | ruby
           gem install bundler
           bundle install --jobs 4 --retry 3
       - name: Compile
