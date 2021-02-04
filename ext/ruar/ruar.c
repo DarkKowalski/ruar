@@ -252,6 +252,12 @@ static VALUE ruar_access_rb_index(VALUE self, VALUE archive)
 
     /* Prepare buffer and load the index into memory */
     uint8_t *index_buf = (uint8_t *)malloc(sizeof(uint8_t) * index_size);
+    if (index_buf == NULL)
+    {
+        fprintf(stderr, "\nFailed to allocate memory for index buffer!\n");
+        fclose(fp);
+        return Qnil;
+    }
     fseek(fp, index_start, SEEK_SET);
     fread(index_buf, index_size, 1, fp);
     fclose(fp);
