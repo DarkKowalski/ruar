@@ -4,15 +4,18 @@ on:
   push:
     branches:
       - master
+      - dev
   schedule:
-    - cron: '0 7 * * SUN'
+    - cron: "0 7 * * SUN"
 jobs:
   test:
     strategy:
       fail-fast: false
       matrix:
         include:
-        - { os: ubuntu-20.04, ruby: '3.0'}
+          - { os: ubuntu-20.04, ruby: "3.0" }
+          - { os: macos-10.15, ruby: "3.0" }
+          - { os: windows-2019, ruby: "3.0" }
     name: test ${{ matrix.os }} ${{ matrix.ruby }}
     runs-on: ${{ matrix.os }}
     timeout-minutes: 5
@@ -24,8 +27,9 @@ jobs:
           bundler-cache: false
       - name: Install Dependencies
         run: |
-            gem install bundler
-            bundle install --jobs 4 --retry 3
+          echo 'puts `pacman -S --needed mingw-w64-x86_64-zlib mingw-w64-i686-zlib` unless (/mingw/ =~ RUBY_PLATFORM).nil?' | ruby
+          gem install bundler
+          bundle install --jobs 4 --retry 3
       - name: Compile
         run: rake compile
       - name: Test
