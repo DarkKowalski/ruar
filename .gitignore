@@ -60,3 +60,4 @@ Gemfile.lock
 .vscode/*
 !.vscode/c_cpp_properties.json
 valgrind-*
+dev*.rb

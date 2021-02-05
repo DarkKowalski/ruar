@@ -76,7 +76,7 @@ static VALUE rb_mRuar_Access_Native;
 /* Functions exposed as instance method on Ruar::Access::Native */
 static VALUE ruar_access_rb_header(VALUE self, VALUE archive);
 static VALUE ruar_access_rb_index(VALUE self, VALUE archive);
-static VALUE ruar_access_rb_file(VALUE self, VALUE archive, VALUE path);
+static VALUE ruar_access_rb_file(VALUE self, VALUE archive, VALUE offset, VALUE size);
 
 /* Ruar::Const::Native */
 static VALUE rb_mRuar_Const;
@@ -102,7 +102,7 @@ void Init_ruar(void)
     rb_mRuar_Access_Native = rb_define_module_under(rb_kRuar_Access, "Native");
     rb_define_module_function(rb_mRuar_Access_Native, "header", ruar_access_rb_header, 1);
     rb_define_module_function(rb_mRuar_Access_Native, "index", ruar_access_rb_index, 1);
-    rb_define_module_function(rb_mRuar_Access_Native, "file", ruar_access_rb_file, 2);
+    rb_define_module_function(rb_mRuar_Access_Native, "file", ruar_access_rb_file, 3);
 
     rb_mRuar_Const = rb_define_module_under(rb_mRuar, "Const");
     rb_mRuar_Const_Native = rb_define_module_under(rb_mRuar_Const, "Native");
@@ -123,16 +123,16 @@ static VALUE ruar_rb_header_hash(const struct ruar_header *header)
 {
     VALUE rb_header = rb_hash_new();
 
-    rb_hash_aset(rb_header, rb_str_new_cstr("major_version"), INT2NUM(header->major_version));
-    rb_hash_aset(rb_header, rb_str_new_cstr("minor_version"), INT2NUM(header->minor_version));
-    rb_hash_aset(rb_header, rb_str_new_cstr("patch_version"), INT2NUM(header->patch_version));
-    rb_hash_aset(rb_header, rb_str_new_cstr("platform"), INT2NUM(header->platform));
-    rb_hash_aset(rb_header, rb_str_new_cstr("compression_flags"), INT2NUM(header->compression_flags));
-    rb_hash_aset(rb_header, rb_str_new_cstr("encrypthon_flags"), INT2NUM(header->encryption_flags));
-    rb_hash_aset(rb_header, rb_str_new_cstr("index_start"), INT2NUM(header->index_start));
-    rb_hash_aset(rb_header, rb_str_new_cstr("index_size"), INT2NUM(header->index_size));
-    rb_hash_aset(rb_header, rb_str_new_cstr("index_checksum"), INT2NUM(header->index_checksum));
-    rb_hash_aset(rb_header, rb_str_new_cstr("header_checksum"), INT2NUM(header->header_checksum));
+    rb_hash_aset(rb_header, rb_utf8_str_new_cstr("major_version"), INT2NUM(header->major_version));
+    rb_hash_aset(rb_header, rb_utf8_str_new_cstr("minor_version"), INT2NUM(header->minor_version));
+    rb_hash_aset(rb_header, rb_utf8_str_new_cstr("patch_version"), INT2NUM(header->patch_version));
+    rb_hash_aset(rb_header, rb_utf8_str_new_cstr("platform"), INT2NUM(header->platform));
+    rb_hash_aset(rb_header, rb_utf8_str_new_cstr("compression_flags"), INT2NUM(header->compression_flags));
+    rb_hash_aset(rb_header, rb_utf8_str_new_cstr("encrypthon_flags"), INT2NUM(header->encryption_flags));
+    rb_hash_aset(rb_header, rb_utf8_str_new_cstr("index_start"), INT2NUM(header->index_start));
+    rb_hash_aset(rb_header, rb_utf8_str_new_cstr("index_size"), INT2NUM(header->index_size));
+    rb_hash_aset(rb_header, rb_utf8_str_new_cstr("index_checksum"), INT2NUM(header->index_checksum));
+    rb_hash_aset(rb_header, rb_utf8_str_new_cstr("header_checksum"), INT2NUM(header->header_checksum));
 
     return rb_header;
 }
@@ -226,8 +226,20 @@ static VALUE ruar_access_rb_header(VALUE self, VALUE archive)
     fread(buf, HEADER_SIZE, 1, fp);
     fclose(fp);
 
+    struct ruar_header *header = (struct ruar_header *)buf;
+
+    /* Validate */
+    uint32_t header_checksum = header->header_checksum;           /* Extract first*/
+    header->header_checksum = 0;                                  /* Clear these bits */
+    uint32_t re_checksum = ruar_crc32_generate(buf, HEADER_SIZE); /* Re-compute it */
+    if (re_checksum != header_checksum)
+    {
+        fprintf(stderr, "\nUnmatched checksum, provided: %x, expected: %x \n", re_checksum, header_checksum);
+        return Qnil;
+    }
+
     /* Ruby Hash */
-    return ruar_rb_header_hash((struct ruar_header *)buf);
+    return ruar_rb_header_hash(header);
 }
 
 static VALUE ruar_access_rb_index(VALUE self, VALUE archive)
@@ -272,15 +284,41 @@ static VALUE ruar_access_rb_index(VALUE self, VALUE archive)
     }
 
     /* Get Ruby String */
-    VALUE index = rb_str_new_cstr((char *)index_buf);
+    VALUE index = rb_utf8_str_new_cstr((char *)index_buf);
     free(index_buf);
 
     /* Ruby String */
     return index;
 }
 
-static VALUE ruar_access_rb_file(VALUE self, VALUE archive, VALUE path)
+static VALUE ruar_access_rb_file(VALUE self, VALUE archive, VALUE offset, VALUE size)
 {
-    /* FIXME: return nil currenlty */
-    return Qnil;
+    char *archive_cstring = rb_string_value_cstr(&archive);
+    FILE *fp = fopen(archive_cstring, "rb");
+    if (fp == NULL)
+    {
+        fprintf(stderr, "\nFailed to open file! %s\n", archive_cstring);
+        return Qnil;
+    }
+
+    size_t size_cint = NUM2SIZET(size);
+
+    uint8_t *file_buf = (uint8_t *)malloc(sizeof(uint8_t) * size_cint + 1);
+    if (file_buf == NULL)
+    {
+        fprintf(stderr, "\nFailed to allocate memory for file buffer!\n");
+        fclose(fp);
+        return Qnil;
+    }
+
+    long offset_cint = NUM2LONG(offset);
+    fseek(fp, offset_cint, SEEK_SET);
+    fread(file_buf, 1, size_cint, fp);
+    fclose(fp);
+
+    file_buf[size_cint] = '\0';
+    VALUE file = rb_utf8_str_new_cstr((char *)file_buf);
+    free(file_buf);
+
+    return file;
 }
