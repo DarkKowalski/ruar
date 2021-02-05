@@ -5,6 +5,6 @@ require 'test_helper'
 class BasicTest < Minitest::Test
   def test_ruar_can_be_initialized
     # Assert not raise
-    puts Ruar::Const::Native.header_size
+    Ruar::Const::Native.header_size
   end
 end
