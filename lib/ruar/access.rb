@@ -40,7 +40,7 @@ module Ruar
     end
 
     def self.abs_path(path)
-      File.expand_path(path, '/')
+      Pathname.new(path).cleanpath.to_s
     end
 
     # Array
