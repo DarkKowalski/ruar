@@ -35,7 +35,6 @@ class AccessTest < Minitest::Test
 
   def test_ruar_can_eval_file_using_plain_mode
     file_content = @access.read('./y/z.rb')
-    puts file_content
     Kernel.eval(file_content)
     z
   end

@@ -232,6 +232,7 @@ static VALUE ruar_access_rb_header(VALUE self, VALUE archive)
     uint32_t header_checksum = header->header_checksum;           /* Extract first*/
     header->header_checksum = 0;                                  /* Clear these bits */
     uint32_t re_checksum = ruar_crc32_generate(buf, HEADER_SIZE); /* Re-compute it */
+    header->header_checksum = header_checksum;                    /* Put it back */
     if (re_checksum != header_checksum)
     {
         fprintf(stderr, "\nUnmatched checksum, provided: %x, expected: %x \n", re_checksum, header_checksum);
