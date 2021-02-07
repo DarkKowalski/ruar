@@ -54,12 +54,13 @@ module Ruar
 
         dirs = entities.select { |d| File.directory?(d) }
         dirs.each do |d|
-          sub_index, sub_source_info = scan(d, offset)
+          # Notice: need to accumulate offset here
+          sub_index, sub_source_info, offset = scan(d, offset)
           index['files'][d] = sub_index
           source_info.concat(sub_source_info)
         end
 
-        return index, source_info
+        [index, source_info, offset]
       end
     end
   end

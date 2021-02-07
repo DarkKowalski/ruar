@@ -43,7 +43,8 @@ module Ruar
       pseudo_filename = Ruar::Access.abs_path(path)
       pseudo_lineno = 1
       file = read(path)
-      Kernel.class_eval(file, pseudo_filename, pseudo_lineno)
+      # FIXME: need to test
+      Object.class_eval(file, pseudo_filename, pseudo_lineno)
     end
 
     def self.abs_path(path)

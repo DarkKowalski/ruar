@@ -312,7 +312,7 @@ static VALUE ruar_access_rb_file(VALUE self, VALUE archive, VALUE offset, VALUE 
         return Qnil;
     }
 
-    long offset_cint = NUM2LONG(offset);
+    size_t offset_cint = NUM2SIZET(offset);
     fseek(fp, offset_cint, SEEK_SET);
     fread(file_buf, 1, size_cint, fp);
     fclose(fp);

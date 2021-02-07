@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-def err
-  raise({
+def plain_def_in_nested_dir
+  {
     'env_file' => __FILE__,
     'env_lineno' => __LINE__,
-    'real_file' => 'y/err.rb'
-  }.to_s)
+    'real_file' => 'dir2/dir3/plain_def_in_dir.rb'
+  }
 end
