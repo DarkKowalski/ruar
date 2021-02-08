@@ -23,7 +23,7 @@ module Ruar
       @index, @source_info = scan(dir, 0)
     end
 
-    # FIXME：don't recurse
+    # FIXME: don't recurse
     # TODO: support compression and encryption
     # Recursively scan the directory
     def scan(dir, offset)
@@ -31,7 +31,7 @@ module Ruar
         index = { 'files' => {} }
         source_info = [] # { realpath, size, offset }
         entities = Dir['**']
-        return index, source_info if entities.empty?
+        return [index, source_info, offset] if entities.empty?
 
         files = entities.select { |f| File.file?(f) }
         files.each do |f|

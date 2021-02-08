@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-def hello
+def plain_def
   {
     'env_file' => __FILE__,
     'env_lineno' => __LINE__,
