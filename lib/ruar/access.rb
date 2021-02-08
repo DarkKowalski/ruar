@@ -39,6 +39,14 @@ module Ruar
       Ruar::Access::Native.file(@archive, offset.to_i, size.to_i)
     end
 
+    def eval(path)
+      pseudo_filename = Ruar::Access.abs_path(path)
+      pseudo_lineno = 1
+      file = read(path)
+      # FIXME: need to test
+      Object.class_eval(file, pseudo_filename, pseudo_lineno)
+    end
+
     def self.abs_path(path)
       Pathname.new(path).cleanpath.to_s
     end

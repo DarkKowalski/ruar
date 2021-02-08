@@ -17,6 +17,7 @@ class AccessTest < Minitest::Test
     refute_nil(@access.index)
   end
 
+  # This would not really access file
   def test_ruar_can_resolve_nested_path
     expected = %w[sample y z]
     result = Ruar::Access.clean_path('sample/x/../y/z')
@@ -24,19 +25,19 @@ class AccessTest < Minitest::Test
   end
 
   def test_ruar_can_lookup_index_from_file_using_plain_mode
-    offset, _size, _executable = @access.lookup('./y/z.rb')
+    offset, _size, _executable = @access.lookup('dir2/dir3/plain_def_in_nested_dir.rb')
     refute_nil(offset)
   end
 
   def test_ruar_can_read_file_using_plain_mode
-    file_content = @access.read('./y/z.rb')
+    file_content = @access.read('dir2/dir3/plain_def_in_nested_dir.rb')
     refute_nil(file_content)
   end
 
   def test_ruar_can_eval_file_using_plain_mode
-    file_content = @access.read('./y/z.rb')
-    puts file_content
-    Kernel.eval(file_content)
-    z
+    file_content = @access.eval('dir2/dir3/plain_def_in_nested_dir.rb')
+    refute_nil(plain_def_in_nested_dir)
   end
+
+  # TODO: add more tests here
 end
