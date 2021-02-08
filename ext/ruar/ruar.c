@@ -263,7 +263,10 @@ static VALUE ruar_access_rb_index(VALUE self, VALUE archive)
     uint32_t index_size = header->index_size;
     uint32_t index_checksum = header->index_checksum;
 
-    /* Prepare buffer and load the index into memory */
+    /* Prepare buffer and load the index into memory 
+     * When we serialized the index into archive, the trailing '\0'
+     * has already been added and counted in index_size
+     */
     uint8_t *index_buf = (uint8_t *)malloc(sizeof(uint8_t) * index_size);
     if (index_buf == NULL)
     {
@@ -292,6 +295,9 @@ static VALUE ruar_access_rb_index(VALUE self, VALUE archive)
     return index;
 }
 
+/*  Offset here is absolute offset from the beginning of the archive,
+ * and it's calculated in Ruby code
+ */
 static VALUE ruar_access_rb_file(VALUE self, VALUE archive, VALUE offset, VALUE size)
 {
     char *archive_cstring = rb_string_value_cstr(&archive);
@@ -304,6 +310,10 @@ static VALUE ruar_access_rb_file(VALUE self, VALUE archive, VALUE offset, VALUE 
 
     size_t size_cint = NUM2SIZET(size);
 
+    
+    /* Ruby C API will convert this C-style String to a Ruby String Object
+     * Thus one extra byte for the trialing '\0' 
+     */
     uint8_t *file_buf = (uint8_t *)malloc(sizeof(uint8_t) * size_cint + 1);
     if (file_buf == NULL)
     {
@@ -317,9 +327,11 @@ static VALUE ruar_access_rb_file(VALUE self, VALUE archive, VALUE offset, VALUE 
     fread(file_buf, 1, size_cint, fp);
     fclose(fp);
 
+    /* Trailing '\0' for the C-style string */
     file_buf[size_cint] = '\0';
     VALUE file = rb_utf8_str_new_cstr((char *)file_buf);
     free(file_buf);
 
+    /* Ruby String */
     return file;
 }
