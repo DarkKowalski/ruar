@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Rien
+module Ruar
   class Sample
     def hello
       {

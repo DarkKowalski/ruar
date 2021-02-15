@@ -44,7 +44,7 @@ module Ruar
       pseudo_lineno = 1
       file = read(path)
       # FIXME: need to test
-      Object.class_eval(file, pseudo_filename, pseudo_lineno)
+      Kernel.eval(file, TOPLEVEL_BINDING, pseudo_filename, pseudo_lineno)
     end
 
     def self.abs_path(path)
