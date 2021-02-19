@@ -11,7 +11,7 @@ module Ruar
 
       # Generate pseudo $LOADED_FEATURES entry
       def self.pseudo_lf_entry(path)
-        prefix = '/from/ruar/internal/'
+        prefix = Ruar.path_prefix
         # TODO: support .so here
         if File.extname(path) == '.rb'
           File.join(prefix, path)
@@ -47,8 +47,8 @@ module Kernel
     end
   end
 
-  def require(path, option = { from: :both })
-    case option[:from]
+  def require(path, from: :both)
+    case from
     when :both
       begin
         require_with_ruar(path)
@@ -60,8 +60,20 @@ module Kernel
     when :local
       require_without_ruar(path)
     else
-      warn "#{__FILE__}:#{__LINE__}: unknown option: #{option}"
       raise Ruar::Access::CoreExt.make_load_error(path)
     end
+  end
+
+  # TODO: need to test
+  def require_relative(path, from: :both)
+    caller_path = caller_locations.first.path.to_s
+    caller_dir = Pathname.new(caller_path).dirname.to_s
+    prefix = Ruar.path_prefix.to_s
+
+    # Ruar Internal File
+    caller_dir = caller_dir.delete_prefix(prefix).prepend(File::SEPARATOR) if caller_dir.start_with?(prefix)
+
+    resolved_path = File.expand_path(path, caller_dir)
+    require(resolved_path, from: from)
   end
 end

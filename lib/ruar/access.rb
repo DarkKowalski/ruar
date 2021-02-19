@@ -40,7 +40,7 @@ module Ruar
     end
 
     def eval(path)
-      pseudo_filename = Ruar::Access.abs_path(path)
+      pseudo_filename = File.join(Ruar.path_prefix.to_s, Ruar::Access.abs_path(path))
       pseudo_lineno = 1
       file = read(path)
       # FIXME: need to test

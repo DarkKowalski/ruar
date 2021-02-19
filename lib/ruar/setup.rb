@@ -9,7 +9,13 @@ module Ruar
     module ClassMethods
       def setup(option = {})
         @entrypoint ||= Ruar::EntryPoint.new(option)
+        @path_prefix ||= Pathname.new('/_from/_ruar/_internal')
+
         self
+      end
+
+      def path_prefix
+        @path_prefix
       end
 
       def activate
