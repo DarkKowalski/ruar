@@ -64,6 +64,8 @@ module Kernel
     end
   end
 
+  alias require_relative_without_ruar require_relative
+
   # TODO: need to test
   def require_relative(path, from: :both)
     caller_path = caller_locations.first.path.to_s
@@ -76,4 +78,37 @@ module Kernel
     resolved_path = File.expand_path(path, caller_dir)
     require(resolved_path, from: from)
   end
+
+  alias load_without_ruar load
+
+  def load_with_ruar(path)
+    Ruar.eval(path)
+    true
+  rescue Ruar::Error::FileNotFound
+    begin
+      Ruar.eval("#{path}.rb") # Try again with .rb extension
+      true
+    rescue Ruar::Error::FileNotFound
+      raise Ruar::Access::CoreExt.make_load_error(path)
+    end
+  end
+
+  def load(path, from: :both)
+    case from
+    when :both
+      begin
+        load_with_ruar(path)
+      rescue LoadError
+        load_without_ruar(path)
+      end
+    when :ruar
+      load_with_ruar(path)
+    when :local
+      load_without_ruar(path)
+    else
+      raise Ruar::Access::CoreExt.make_load_error(path)
+    end
+  end
+
+  # TODO: deliberately test autoload
 end
