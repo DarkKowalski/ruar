@@ -4,6 +4,11 @@ module Ruar
   class Access
     attr_reader :archive, :header, :index
 
+    def self.make_not_exist_error(path)
+      # FIXME: use a more specific error
+      Ruar::Error::FileNotFound.new(path)
+    end
+
     def initialize(archive)
       @archive = archive
       rebuild
@@ -18,14 +23,10 @@ module Ruar
       begin
         paths.each { |dir| pwd = pwd[dir]['files'] }
       rescue StandardError
-        warn "File Not Exist! #{path} resolved to #{paths} -> #{filename}"
-        return
+        raise Ruar::Access.make_not_exist_error(path)
       end
 
-      if pwd[filename].nil?
-        warn "File Not Exist! #{path} resolved to #{paths} -> #{filename}"
-        return
-      end
+      raise Ruar::Access.make_not_exist_error(path) if pwd[filename].nil?
 
       offset = pwd[filename]['offset'] + @file_start
       size = pwd[filename]['size']
