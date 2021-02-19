@@ -12,6 +12,7 @@ module Ruar
       # Generate pseudo $LOADED_FEATURES entry
       def self.pseudo_lf_entry(path)
         prefix = '/from/ruar/internal/'
+        # TODO: support .so here
         if File.extname(path) == '.rb'
           File.join(prefix, path)
         else
