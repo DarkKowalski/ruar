@@ -5,7 +5,6 @@ module Ruar
     attr_reader :archive, :header, :index
 
     def self.make_not_exist_error(path)
-      # FIXME: use a more specific error
       Ruar::Error::FileNotFound.new(path)
     end
 
