@@ -27,14 +27,13 @@ module Kernel
   module_function
 
   def ruar_eval_wrap(path, eval_bind = TOPLEVEL_BINDING)
-    Ruar.eval(path, eval_bind)
+    Ruar.eval("#{path}.rb", eval_bind) # Ruar.eval(path.rb, eval_bind)
     yield
     true
   rescue Ruar::Error::FileNotFound
-    # Try again with .rb extension
+    # Try again without .rb extension
     begin
-      # For rubocop:
-      Ruar.eval("#{path}.rb", eval_bind) # Ruar.eval(path.rb, eval_bind)
+      Ruar.eval(path, eval_bind)
       yield
       true
     rescue Ruar::Error::BaseError
