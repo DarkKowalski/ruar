@@ -26,24 +26,33 @@ end
 module Kernel
   module_function
 
+  def ruar_eval_wrap(path, eval_bind = TOPLEVEL_BINDING)
+    Ruar.eval(path, eval_bind)
+    yield
+    true
+  rescue Ruar::Error::FileNotFound
+    # Try again with .rb extension
+    begin
+      # For rubocop:
+      Ruar.eval("#{path}.rb", eval_bind) # Ruar.eval(path.rb, eval_bind)
+      yield
+      true
+    rescue Ruar::Error::BaseError
+      raise Ruar::Access::CoreExt.make_load_error(path)
+    end
+  rescue Ruar::Error::BaseError
+    raise Ruar::Access::CoreExt.make_load_error(path)
+  end
+
   alias require_without_ruar require
 
-  def require_with_ruar(path)
+  def require_with_ruar(path, eval_bind = TOPLEVEL_BINDING)
+    # puts "path = #{path}, location = #{eval_bind.source_location}"
     pseudo_entry = Ruar::Access::CoreExt.pseudo_lf_entry(path)
     return false if $LOADED_FEATURES.include?(pseudo_entry) # Already been required
 
-    begin
-      Ruar.eval(path)
+    ruar_eval_wrap(path, eval_bind) do
       $LOADED_FEATURES << pseudo_entry
-      true
-    rescue Ruar::Error::FileNotFound
-      begin
-        Ruar.eval("#{path}.rb") # Try again with .rb extension
-        $LOADED_FEATURES << pseudo_entry
-        true
-      rescue Ruar::Error::FileNotFound
-        raise Ruar::Access::CoreExt.make_load_error(path)
-      end
     end
   end
 
@@ -81,15 +90,9 @@ module Kernel
 
   alias load_without_ruar load
 
-  def load_with_ruar(path)
-    Ruar.eval(path)
-    true
-  rescue Ruar::Error::FileNotFound
-    begin
-      Ruar.eval("#{path}.rb") # Try again with .rb extension
-      true
-    rescue Ruar::Error::FileNotFound
-      raise Ruar::Access::CoreExt.make_load_error(path)
+  def load_with_ruar(path, eval_bind = TOPLEVEL_BINDING)
+    ruar_eval_wrap(path, eval_bind) do
+      # Do nothing, just read and eval
     end
   end
 
@@ -111,4 +114,5 @@ module Kernel
   end
 
   # TODO: deliberately test autoload
+  # FIXME: not support autoload
 end

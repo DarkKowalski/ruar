@@ -7,8 +7,8 @@ module Ruar
     end
 
     module ClassMethods
-      def setup(option = {})
-        @entrypoint ||= Ruar::EntryPoint.new(option)
+      def setup(archive: nil, entry: nil)
+        @entrypoint ||= Ruar::EntryPoint.new(archive: archive, entry: entry)
         @path_prefix ||= Pathname.new('/_from/_ruar/_internal')
 
         self
@@ -19,12 +19,18 @@ module Ruar
       end
 
       def activate
+        return if @activated
+
+        @activated = true
+
         require_relative 'core_ext/kernel_require'
         @entrypoint.activate
+
+        puts 'Ruar Activated!'.green
       end
 
-      def eval(path)
-        @entrypoint.eval(path)
+      def eval(path, bind = TOPLEVEL_BINDING)
+        @entrypoint.eval(path, bind)
       end
     end
   end

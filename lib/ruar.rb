@@ -3,6 +3,7 @@
 require 'json'
 require 'tmpdir'
 require 'pathname'
+require 'binding_of_caller'
 
 require_relative 'ruar/version'
 require_relative 'ruar/ruar'
@@ -14,3 +15,5 @@ require_relative 'ruar/access'
 require_relative 'ruar/entrypoint'
 
 require_relative 'ruar/setup'
+
+require_relative 'ruar/core_ext/string_colorize'

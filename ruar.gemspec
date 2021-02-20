@@ -25,6 +25,7 @@ Gem::Specification.new do |s|
     'bug_tracker_uri' => 'https://github.com/darkkowalski/ruar/issues'
   }
 
+  s.add_development_dependency 'binding_of_caller'
   s.add_development_dependency 'minitest', '~> 5.14.3'
   s.add_development_dependency 'minitest-reporters', '~> 1.4.3'
   s.add_development_dependency 'rake', '~> 13.0.3'

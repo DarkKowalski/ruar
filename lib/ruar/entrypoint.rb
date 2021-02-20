@@ -2,19 +2,19 @@
 
 module Ruar
   class EntryPoint
-    def initialize(option = { archive: nil, entry: nil })
-      @archive = option[:archive]
-      @entry = option[:entry]
+    def initialize(archive: nil, entry: nil)
+      @archive = archive
+      @entry = entry
     end
 
     def activate
       @access = Ruar::Access.new(@archive)
-      # First eval this file if option[:entry] is setted
+      # First eval this file if option[:entry] is set
       @access.eval(@entry) unless @entry.nil?
     end
 
-    def eval(path)
-      @access.eval(path)
+    def eval(path, eval_bind = TOPLEVEL_BINDING)
+      @access.eval(path, eval_bind)
     end
   end
 end
