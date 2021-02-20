@@ -295,7 +295,7 @@ static VALUE ruar_access_rb_index(VALUE self, VALUE archive)
     return index;
 }
 
-/*  Offset here is absolute offset from the beginning of the archive,
+/* Offset here is absolute offset from the beginning of the archive,
  * and it's calculated in Ruby code
  */
 static VALUE ruar_access_rb_file(VALUE self, VALUE archive, VALUE offset, VALUE size)

@@ -25,11 +25,12 @@ Gem::Specification.new do |s|
     'bug_tracker_uri' => 'https://github.com/darkkowalski/ruar/issues'
   }
 
+  s.add_development_dependency 'binding_of_caller', '~> 1.0.0'
   s.add_development_dependency 'minitest', '~> 5.14.3'
   s.add_development_dependency 'minitest-reporters', '~> 1.4.3'
   s.add_development_dependency 'rake', '~> 13.0.3'
   s.add_development_dependency 'rake-compiler', '~> 1.1.1'
-  s.add_development_dependency 'rubocop'
-  s.add_development_dependency 'rubocop-minitest'
-  s.add_development_dependency 'rubocop-rake'
+  s.add_development_dependency 'rubocop', '~> 1.9.0'
+  s.add_development_dependency 'rubocop-minitest', '~> 0.10.3'
+  s.add_development_dependency 'rubocop-rake', '~>0.5.1'
 end

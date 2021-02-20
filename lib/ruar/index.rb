@@ -6,8 +6,6 @@ module Ruar
 
     def initialize(dir = '.')
       @dir = dir
-      @index = nil
-      @source_info = nil
       generate(dir)
     end
 
@@ -19,7 +17,6 @@ module Ruar
 
     # Generate json format index
     def generate(dir)
-      # JSON.pretty_generate(scan(dir))
       @index, @source_info = scan(dir, 0)
     end
 

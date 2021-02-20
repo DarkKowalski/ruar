@@ -4,6 +4,24 @@ module Ruar
   class Access
     attr_reader :archive, :header, :index
 
+    def self.make_not_exist_error(path)
+      Ruar::Error::FileNotFound.new(path)
+    end
+
+    def self.make_failed_to_eval_error(path)
+      Ruar::Error::FailedToEval.new(path)
+    end
+
+    def self.warn_autoload(name_error)
+      location = name_error.backtrace_locations.first
+      message = <<~MSG
+        #{location}
+        Kernel.autoload and Module.autoload are not supported by ruar,
+        if you are using them, try `require` instead
+      MSG
+      warn message.yellow
+    end
+
     def initialize(archive)
       @archive = archive
       rebuild
@@ -18,14 +36,10 @@ module Ruar
       begin
         paths.each { |dir| pwd = pwd[dir]['files'] }
       rescue StandardError
-        warn "File Not Exist! #{path} resolved to #{paths} -> #{filename}"
-        return
+        raise Ruar::Access.make_not_exist_error(path)
       end
 
-      if pwd[filename].nil?
-        warn "File Not Exist! #{path} resolved to #{paths} -> #{filename}"
-        return
-      end
+      raise Ruar::Access.make_not_exist_error(path) if pwd[filename].nil?
 
       offset = pwd[filename]['offset'] + @file_start
       size = pwd[filename]['size']
@@ -39,12 +53,21 @@ module Ruar
       Ruar::Access::Native.file(@archive, offset.to_i, size.to_i)
     end
 
-    def eval(path)
-      pseudo_filename = Ruar::Access.abs_path(path)
+    def eval(path, eval_bind = TOPLEVEL_BINDING)
+      pseudo_filename = File.join(Ruar.path_prefix.to_s, Ruar::Access.abs_path(path))
       pseudo_lineno = 1
       file = read(path)
       # FIXME: need to test
-      Object.class_eval(file, pseudo_filename, pseudo_lineno)
+      begin
+        Kernel.eval(file, eval_bind, pseudo_filename, pseudo_lineno)
+      rescue NameError => e # FIXME: to warn autoload pitfall
+        begin
+          Ruar::Access.warn_autoload(e)
+          raise
+        rescue StandardError
+          raise Ruar::Access.make_failed_to_eval_error(path)
+        end
+      end
     end
 
     def self.abs_path(path)

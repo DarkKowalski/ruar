@@ -5,6 +5,34 @@ Tar-like Archive for RIEN
 [![CI Tests](https://github.com/DarkKowalski/ruar/workflows/CI%20Tests/badge.svg)](https://github.com/DarkKowalski/ruar/actions?query=workflow%3A%22CI+Tests%22)
 [![Build](https://github.com/DarkKowalski/ruar/workflows/Build/badge.svg)](https://github.com/DarkKowalski/ruar/actions?query=workflow%3ABuild)
 
+## Usage
+
+```ruby
+require 'ruar'
+require 'tmpdir'
+
+# Serialize it
+# file /tmp/plain.ruar => data
+archive = File.join(Dir.tmpdir, 'plain.ruar')
+Ruar::Serialize.plain('./test/sample', archive)
+
+# Setup
+Ruar.setup(
+  archive: archive
+).activate
+
+# Require from /tmp/plain.ruar
+require 'dir/file'
+
+# require 'your_file', from: [:both, :ruar, :local]
+# require_relative 'your_file', from: [:both, :ruar, :local]
+# load 'your_file', from: [:both, :ruar, :local]
+#
+# Notice: Currently we don't support autoload from ruar
+
+# Here you go
+```
+
 ## Format
 
 ```

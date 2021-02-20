@@ -35,9 +35,7 @@ class AccessTest < Minitest::Test
   end
 
   def test_ruar_can_eval_file_using_plain_mode
-    file_content = @access.eval('dir2/dir3/plain_def_in_nested_dir.rb')
+    _file_content = @access.eval('dir2/dir3/plain_def_in_nested_dir.rb')
     refute_nil(plain_def_in_nested_dir)
   end
-
-  # TODO: add more tests here
 end
