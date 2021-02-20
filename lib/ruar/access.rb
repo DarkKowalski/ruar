@@ -27,6 +27,7 @@ module Ruar
       rebuild
     end
 
+    # TODO: Need to deliberately test this part
     def lookup(path)
       paths = Ruar::Access.clean_path(path)
       filename = paths.pop
