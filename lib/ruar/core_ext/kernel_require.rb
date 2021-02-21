@@ -14,9 +14,9 @@ module Ruar
         prefix = Ruar.path_prefix
         # TODO: support .so here
         if File.extname(path) == '.rb'
-          File.join(prefix, path)
+          Pathname.new(File.join(prefix, path)).cleanpath.to_s
         else
-          File.join(prefix, "#{path}.rb")
+          Pathname.new(File.join(prefix, "#{path}.rb")).cleanpath.to_s
         end
       end
     end
@@ -28,13 +28,13 @@ module Kernel
 
   def ruar_eval_wrap(path, eval_bind = TOPLEVEL_BINDING)
     Ruar.eval("#{path}.rb", eval_bind) # Ruar.eval(path.rb, eval_bind)
-    yield
+    yield if block_given?
     true
   rescue Ruar::Error::FileNotFound
     # Try again without .rb extension
     begin
       Ruar.eval(path, eval_bind)
-      yield
+      yield if block_given?
       true
     rescue Ruar::Error::BaseError
       raise Ruar::Access::CoreExt.make_load_error(path)
@@ -90,9 +90,7 @@ module Kernel
   alias load_without_ruar load
 
   def load_with_ruar(path, eval_bind = TOPLEVEL_BINDING)
-    ruar_eval_wrap(path, eval_bind) do
-      # Do nothing, just read and eval
-    end
+    ruar_eval_wrap(path, eval_bind)
   end
 
   def load(path, from: :both)

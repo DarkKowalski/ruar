@@ -32,6 +32,10 @@ module Ruar
       def eval(path, bind = TOPLEVEL_BINDING)
         @entrypoint.eval(path, bind)
       end
+
+      def cipher
+        @cipher ||= Ruar::Cipher.new
+      end
     end
   end
 end

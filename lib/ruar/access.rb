@@ -51,7 +51,10 @@ module Ruar
 
     def read(path)
       offset, size, _executable = lookup(path)
-      Ruar::Access::Native.file(@archive, offset.to_i, size.to_i)
+      file = Ruar::Access::Native.file(@archive, offset.to_i, size.to_i)
+      file = Ruar.cipher.decrypt(file)[:decrypted] if Ruar.cipher.enable?
+
+      file
     end
 
     def eval(path, eval_bind = TOPLEVEL_BINDING)
@@ -87,7 +90,9 @@ module Ruar
 
     def rebuild
       @header = Ruar::Access::Native.header(@archive)
-      @index = JSON.parse(Ruar::Access::Native.index(@archive))
+      index_data = Ruar::Access::Native.index(@archive)
+      index_data = Ruar.cipher.decrypt(index_data)[:decrypted] if Ruar.cipher.enable?
+      @index = JSON.parse(index_data)
       @file_start = @header['index_start'] + @header['index_size']
     end
   end

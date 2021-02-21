@@ -6,7 +6,9 @@ module Ruar
 
     def initialize(dir = '.')
       @dir = dir
-      generate(dir)
+      generate(dir) do |file|
+        yield(file) if block_given?
+      end
     end
 
     def json_index
@@ -17,7 +19,9 @@ module Ruar
 
     # Generate json format index
     def generate(dir)
-      @index, @source_info = scan(dir, 0)
+      @index, @source_info = scan(dir, 0) do |file|
+        yield(file) if block_given?
+      end
     end
 
     # FIXME: don't recurse
@@ -32,6 +36,9 @@ module Ruar
 
         files = entities.select { |f| File.file?(f) }
         files.each do |f|
+          # Do something else likes encrypting the file
+          yield(f) if block_given?
+
           size = File.size(f)
 
           index['files'][f] = {
@@ -52,7 +59,9 @@ module Ruar
         dirs = entities.select { |d| File.directory?(d) }
         dirs.each do |d|
           # Notice: need to accumulate offset here
-          sub_index, sub_source_info, offset = scan(d, offset)
+          sub_index, sub_source_info, offset = scan(d, offset) do |f|
+            yield(f) if block_given?
+          end
           index['files'][d] = sub_index
           source_info.concat(sub_source_info)
         end
