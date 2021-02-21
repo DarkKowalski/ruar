@@ -2,6 +2,7 @@
 
 #include <ctype.h>
 #include <ruby.h>
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -43,7 +44,12 @@ STATIC_ASSERT(sizeof(struct ruar_header) == HEADER_SIZE);
 /* Constants */
 static const uint32_t current_major_version = 0;
 static const uint32_t current_minor_version = 0;
-static const uint32_t current_patch_version = 1;
+static const uint32_t current_patch_version = 3;
+
+/* Flags */
+#define PLAIN 0
+#define AEAD_AES_256_GCM 1
+#define ZLIB_DEFLATE 1
 
 /* System info */
 #ifdef __linux__
@@ -67,6 +73,7 @@ static VALUE rb_mRuar_Serialize_Native;
 
 /* Functions exposed as module functions on Ruar::Serialize::Native */
 static VALUE ruar_serialize_rb_plain_header(VALUE self, VALUE dstfile, VALUE index);
+static VALUE ruar_serialize_rb_aead_header(VALUE self, VALUE dstfile, VALUE index);
 static VALUE ruar_serialize_rb_append_file(VALUE self, VALUE dstfile, VALUE srcfile);
 
 /* Ruar::Access::Native */
@@ -96,6 +103,7 @@ void Init_ruar(void)
     rb_mRuar_Serialize = rb_define_module_under(rb_mRuar, "Serialize");
     rb_mRuar_Serialize_Native = rb_define_module_under(rb_mRuar_Serialize, "Native");
     rb_define_module_function(rb_mRuar_Serialize_Native, "plain_header", ruar_serialize_rb_plain_header, 2);
+    rb_define_module_function(rb_mRuar_Serialize_Native, "aead_header", ruar_serialize_rb_aead_header, 2);
     rb_define_module_function(rb_mRuar_Serialize_Native, "append_file", ruar_serialize_rb_append_file, 2);
 
     rb_kRuar_Access = rb_define_class_under(rb_mRuar, "Access", rb_cObject);
@@ -137,38 +145,74 @@ static VALUE ruar_rb_header_hash(const struct ruar_header *header)
     return rb_header;
 }
 
-static VALUE ruar_serialize_rb_plain_header(VALUE self, VALUE dstfile, VALUE index)
+static struct ruar_header ruar_fillout_header(char *index_cstring, uint32_t index_size, uint32_t encryption_flags, uint32_t compression_flags)
 {
-    /* Call into ruby to generate the index */
-    char *index_cstring = rb_string_value_cstr(&index);
-    uint32_t index_size = INDEX_SIZE(index_cstring);
-
     /* Fill out a header */
     struct ruar_header header = {
         .major_version = current_major_version,
         .minor_version = current_minor_version,
         .patch_version = current_patch_version,
         .platform = current_platform,
-        .encryption_flags = 0,
-        .compression_flags = 0,
+        .encryption_flags = encryption_flags,
+        .compression_flags = compression_flags,
         .index_start = HEADER_SIZE,
         .index_size = index_size,
         .index_checksum = ruar_crc32_generate((unsigned char *)index_cstring, index_size),
         .header_checksum = 0};
     header.header_checksum = ruar_crc32_generate((unsigned char *)&header, HEADER_SIZE);
 
-    /* Write header */
-    char *dstfile_cstring = rb_string_value_cstr(&dstfile);
+    return header;
+}
+
+static bool ruar_write_header_to_file(char *dstfile_cstring, char *index_cstring, uint32_t index_size, struct ruar_header *header)
+{
     FILE *outfile = fopen(dstfile_cstring, "wb");
     if (outfile == NULL)
     {
         fprintf(stderr, "\nFailed to open file! %s\n", dstfile_cstring);
+        return false;
+    }
+
+    fwrite(header, HEADER_SIZE, 1, outfile);
+    fwrite(index_cstring, index_size, 1, outfile);
+    fclose(outfile);
+    return true;
+}
+
+static VALUE ruar_serialize_rb_plain_header(VALUE self, VALUE dstfile, VALUE index)
+{
+    char *index_cstring = rb_string_value_cstr(&index);
+    uint32_t index_size = INDEX_SIZE(index_cstring);
+
+    /* Fill out a header */
+    struct ruar_header header = ruar_fillout_header(index_cstring, index_size, PLAIN, PLAIN);
+
+    /* Write header */
+    char *dstfile_cstring = rb_string_value_cstr(&dstfile);
+    if (!ruar_write_header_to_file(dstfile_cstring, index_cstring, index_size, &header))
+    {
         return Qnil;
     }
 
-    fwrite(&header, HEADER_SIZE, 1, outfile);
-    fwrite(index_cstring, index_size, 1, outfile);
-    fclose(outfile);
+    /* Get Ruby Hash */
+    return ruar_rb_header_hash(&header);
+}
+
+static VALUE ruar_serialize_rb_aead_header(VALUE self, VALUE dstfile, VALUE index)
+{
+    /* Index should be encrypted in Ruby land */
+    char *index_cstring = rb_string_value_cstr(&index);
+    uint32_t index_size = INDEX_SIZE(index_cstring);
+
+    /* Fill out a header */
+    struct ruar_header header = ruar_fillout_header(index_cstring, index_size, AEAD_AES_256_GCM, ZLIB_DEFLATE);
+
+    /* Write header */
+    char *dstfile_cstring = rb_string_value_cstr(&dstfile);
+    if (!ruar_write_header_to_file(dstfile_cstring, index_cstring, index_size, &header))
+    {
+        return Qnil;
+    }
 
     /* Get Ruby Hash */
     return ruar_rb_header_hash(&header);
@@ -310,7 +354,6 @@ static VALUE ruar_access_rb_file(VALUE self, VALUE archive, VALUE offset, VALUE 
 
     size_t size_cint = NUM2SIZET(size);
 
-    
     /* Ruby C API will convert this C-style String to a Ruby String Object
      * Thus one extra byte for the trialing '\0' 
      */
