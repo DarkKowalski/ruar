@@ -14,9 +14,9 @@ module Ruar
         prefix = Ruar.path_prefix
         # TODO: support .so here
         if File.extname(path) == '.rb'
-          File.join(prefix, path)
+          Pathname.new(File.join(prefix, path)).cleanpath.to_s
         else
-          File.join(prefix, "#{path}.rb")
+          Pathname.new(File.join(prefix, "#{path}.rb")).cleanpath.to_s
         end
       end
     end
