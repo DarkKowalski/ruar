@@ -7,9 +7,10 @@ module Ruar
     end
 
     module ClassMethods
-      def setup(archive: nil, entry: nil)
+      def setup(archive: nil, entry: nil, rien: false)
         @entrypoint ||= Ruar::EntryPoint.new(archive: archive, entry: entry)
-        @path_prefix ||= Pathname.new('/_from/_ruar/_internal')
+        # Rien uses relative path when it compiles the Ruby code
+        @path_prefix ||= rien ? Pathname.new('') : Pathname.new('/_from/_ruar/_internal')
 
         self
       end
@@ -31,6 +32,10 @@ module Ruar
 
       def eval(path, bind = TOPLEVEL_BINDING)
         @entrypoint.eval(path, bind)
+      end
+
+      def read(path)
+        @entrypoint.read(path)
       end
 
       def cipher
