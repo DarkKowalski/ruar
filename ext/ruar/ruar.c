@@ -44,7 +44,7 @@ STATIC_ASSERT(sizeof(struct ruar_header) == HEADER_SIZE);
 /* Constants */
 static const uint32_t current_major_version = 0;
 static const uint32_t current_minor_version = 0;
-static const uint32_t current_patch_version = 3;
+static const uint32_t current_patch_version = 4;
 
 /* Flags */
 #define PLAIN 0

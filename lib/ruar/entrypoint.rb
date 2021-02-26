@@ -16,5 +16,9 @@ module Ruar
     def eval(path, eval_bind = TOPLEVEL_BINDING)
       @access.eval(path, eval_bind)
     end
+
+    def read(path)
+      @access.read(path)
+    end
   end
 end

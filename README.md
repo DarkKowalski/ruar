@@ -83,7 +83,7 @@ Ruar.setup(
   archive: archive
 ).activate
 
-# Require from /tmp/aeae.ruar
+# Require from /tmp/aead.ruar
 require 'dir/file'
 ```
 ## Format
