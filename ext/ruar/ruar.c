@@ -181,6 +181,9 @@ static bool ruar_write_header_to_file(char *dstfile_cstring, char *index_cstring
 
 static VALUE ruar_serialize_rb_plain_header(VALUE self, VALUE dstfile, VALUE index)
 {
+    Check_Type(dstfile, T_STRING);
+    Check_Type(index, T_STRING);
+
     char *index_cstring = rb_string_value_cstr(&index);
     uint32_t index_size = INDEX_SIZE(index_cstring);
 
@@ -200,6 +203,9 @@ static VALUE ruar_serialize_rb_plain_header(VALUE self, VALUE dstfile, VALUE ind
 
 static VALUE ruar_serialize_rb_aead_header(VALUE self, VALUE dstfile, VALUE index)
 {
+    Check_Type(dstfile, T_STRING);
+    Check_Type(index, T_STRING);
+
     /* Index should be encrypted in Ruby land */
     char *index_cstring = rb_string_value_cstr(&index);
     uint32_t index_size = INDEX_SIZE(index_cstring);
@@ -221,6 +227,9 @@ static VALUE ruar_serialize_rb_aead_header(VALUE self, VALUE dstfile, VALUE inde
 /* FIXME: maybe we need an atomic way to do this */
 static VALUE ruar_serialize_rb_append_file(VALUE self, VALUE dstfile, VALUE srcfile)
 {
+    Check_Type(dstfile, T_STRING);
+    Check_Type(srcfile, T_STRING);
+
     /* Open archive file to write */
     char *dstfile_cstring = rb_string_value_cstr(&dstfile);
     FILE *outfile = fopen(dstfile_cstring, "ab");
@@ -259,6 +268,8 @@ static VALUE ruar_serialize_rb_append_file(VALUE self, VALUE dstfile, VALUE srcf
 
 static VALUE ruar_access_rb_header(VALUE self, VALUE archive)
 {
+    Check_Type(archive, T_STRING);
+
     char *archive_cstring = rb_string_value_cstr(&archive);
     FILE *fp = fopen(archive_cstring, "rb");
     if (fp == NULL)
@@ -289,6 +300,8 @@ static VALUE ruar_access_rb_header(VALUE self, VALUE archive)
 
 static VALUE ruar_access_rb_index(VALUE self, VALUE archive)
 {
+    Check_Type(archive, T_STRING);
+
     /* Read the header first */
     char *archive_cstring = rb_string_value_cstr(&archive);
     FILE *fp = fopen(archive_cstring, "rb");
@@ -344,6 +357,8 @@ static VALUE ruar_access_rb_index(VALUE self, VALUE archive)
  */
 static VALUE ruar_access_rb_file(VALUE self, VALUE archive, VALUE offset, VALUE size)
 {
+    Check_Type(archive, T_STRING);
+
     char *archive_cstring = rb_string_value_cstr(&archive);
     FILE *fp = fopen(archive_cstring, "rb");
     if (fp == NULL)
