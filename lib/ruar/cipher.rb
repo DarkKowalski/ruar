@@ -18,6 +18,8 @@ module Ruar
       @enable = true
     end
 
+    # Use iv for initial vector
+    # rubocop:disable Naming/MethodParameterName
     def setup(key: nil, iv: nil, auth_data: nil, tag: nil)
       @key = key.nil? ? aead.random_key : Base64.decode64(key)
       @iv = iv.nil? ? aead.random_iv : Base64.decode64(iv)
@@ -60,5 +62,6 @@ module Ruar
 
       { decrypted: decompressed }
     end
+    # rubocop:enable Naming/MethodParameterName
   end
 end
