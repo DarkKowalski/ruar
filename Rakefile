@@ -23,4 +23,9 @@ Gem::PackageTask.new(gemspec) do |pkg|
   # If no block is supplied, then define needs to be called to define the task.
 end
 
-task default: %w[compile test]
+require 'rubocop/rake_task'
+RuboCop::RakeTask.new(:rubocop) do |t|
+  t.options = ['--display-cop-names']
+end
+
+task default: %w[rubocop compile test]

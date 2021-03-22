@@ -27,6 +27,7 @@ module Ruar
     # FIXME: don't recurse
     # TODO: support compression and encryption
     # Recursively scan the directory
+    # rubocop:disable Metrics/CyclomaticComplexity
     def scan(dir, offset)
       Dir.chdir(dir) do
         index = { 'files' => {} }
@@ -55,6 +56,7 @@ module Ruar
 
           offset += size
         end
+        # rubocop:enable Metrics/CyclomaticComplexity
 
         dirs = entities.select { |d| File.directory?(d) }
         dirs.each do |d|
